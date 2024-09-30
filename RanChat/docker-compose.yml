@@ -1,0 +1,29 @@
+version: "3.8"
+
+services:
+  database:
+    image: mysql
+    container_name: database
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: myDB
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+
+
+  backend:
+    container_name: backend
+    build:
+      context: ./
+    ports:
+      - "8080:8080"
+    depends_on:
+      - database
+    restart: on-failure
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+
