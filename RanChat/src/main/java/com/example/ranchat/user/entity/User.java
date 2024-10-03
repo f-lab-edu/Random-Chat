@@ -7,6 +7,7 @@ import lombok.*;
 
 @Entity
 @NoArgsConstructor
+@Getter
 public class User extends BaseEntity {
     // 기본키 전략 공부 필요
     @Id
