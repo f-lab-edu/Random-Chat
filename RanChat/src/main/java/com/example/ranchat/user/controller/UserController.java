@@ -1,6 +1,8 @@
 package com.example.ranchat.user.controller;
 
+import com.example.ranchat.annotation.LoginUser;
 import com.example.ranchat.user.dto.JoinDTO;
+import com.example.ranchat.user.entity.User;
 import com.example.ranchat.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +25,16 @@ public class UserController {
         log.info("arrive?");
         userService.join(joinDTO);
         return "ok";
+    }
+
+    @GetMapping("/jwt-check")
+    public String jwt() {
+        return "jwtWorking";
+    }
+
+    @GetMapping("/argumentResolverTest")
+    public void arg(@LoginUser User user) {
+        System.out.println("argumentResolver said: " + user.getUsername());
     }
 
 }
