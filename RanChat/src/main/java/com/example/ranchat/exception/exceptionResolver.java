@@ -1,0 +1,39 @@
+package com.example.ranchat.exception;
+
+import com.example.ranchat.response.ErrorHandlerResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.ResponseStatus;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@ControllerAdvice
+public class exceptionResolver {
+    @ExceptionHandler({NotFoundUserException.class})
+    @ResponseBody
+    public ResponseEntity<ErrorHandlerResponse> userNotFoundExceptionHandler(HttpServletRequest request, Exception exception) {
+        ErrorHandlerResponse errorResponse = new ErrorHandlerResponse(exception);
+        HttpStatus httpStatus = errorResponse.getStatus();
+        return new ResponseEntity<>(errorResponse, httpStatus);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    @ResponseBody
+    public ResponseEntity<ErrorHandlerResponse> validationException(MethodArgumentNotValidException exception) {
+        BindingResult bindingResult = exception.getBindingResult();
+
+        List<String> errorMessagees = bindingResult.getFieldErrors().stream()
+                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+                .collect(Collectors.toList());
+        // 문제 검증 메세지가 하나가 아니야
+        return new ResponseEntity<>(new ErrorHandlerResponse(exception,errorMessagees),HttpStatus.BAD_REQUEST);
+    }
+}

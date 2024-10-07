@@ -4,6 +4,7 @@ import com.example.ranchat.annotation.LoginUser;
 import com.example.ranchat.user.dto.JoinDTO;
 import com.example.ranchat.user.entity.User;
 import com.example.ranchat.user.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
@@ -33,7 +34,7 @@ public class UserController {
     }
 
     @GetMapping("/argumentResolverTest")
-    public void arg(@LoginUser User user) {
+    public void arg(@Valid @LoginUser User user) {
         System.out.println("argumentResolver said: " + user.getUsername());
     }
 
