@@ -4,9 +4,8 @@ import com.example.ranchat.response.ErrorHandlerResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.messaging.handler.annotation.support.MethodArgumentNotValidException;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -30,10 +29,10 @@ public class exceptionResolver {
     public ResponseEntity<ErrorHandlerResponse> validationException(MethodArgumentNotValidException exception) {
         BindingResult bindingResult = exception.getBindingResult();
 
-        List<String> errorMessagees = bindingResult.getFieldErrors().stream()
-                .map(fieldError -> fieldError.getField() + ": " + fieldError.getDefaultMessage())
+        List<String> errorMessages = bindingResult.getFieldErrors().stream()
+                .map(fieldError -> fieldError.getDefaultMessage())
                 .collect(Collectors.toList());
         // 문제 검증 메세지가 하나가 아니야
-        return new ResponseEntity<>(new ErrorHandlerResponse(exception,errorMessagees),HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(new ErrorHandlerResponse(exception,errorMessages),HttpStatus.BAD_REQUEST);
     }
 }
