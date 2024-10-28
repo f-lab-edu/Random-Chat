@@ -4,16 +4,16 @@ import com.example.ranchat.response.ResponseCode;
 import jakarta.annotation.Nullable;
 import org.springframework.http.HttpStatus;
 
-public class UsernameDuplicationException extends ExceptionBase{
-    public UsernameDuplicationException(ResponseCode responseCode) {
+public class JwtInvalidException extends ExceptionBase{
+    public JwtInvalidException(ResponseCode responseCode) {
         super(responseCode);
     }
 
-    public UsernameDuplicationException(ResponseCode responseCode, @Nullable String message) {
+    public JwtInvalidException(ResponseCode responseCode, @Nullable String message) {
         super(responseCode, message);
     }
     @Override
     public HttpStatus getStatusCode() {
-        return HttpStatus.CONFLICT;
+        return HttpStatus.UNAUTHORIZED;
     }
 }

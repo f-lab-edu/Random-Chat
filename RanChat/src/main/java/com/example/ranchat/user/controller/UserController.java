@@ -23,7 +23,6 @@ public class UserController {
     @PostMapping("/join")
     public ResponseEntity<String> join(@Valid @RequestBody JoinDTO joinDTO) {
         return userService.join(joinDTO);
-
     }
 
     @GetMapping("/jwt-check")
