@@ -26,7 +26,7 @@ public class ErrorHandlerResponse {
         this.timestamp = LocalDateTime.now();
     }
 
-    // 일반 생성자를 처리하는 생성자
+    // 일반 예외를 처리하는 생성자
     public ErrorHandlerResponse(Exception exception)
     {
         this.status = HttpStatus.INTERNAL_SERVER_ERROR;
