@@ -1,0 +1,19 @@
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/myDB
+    username: root
+    password: ${MYSQL_PASSWORD}
+  jpa:
+    show_sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        #        show_sql: true
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQL8Dialect
+
+  test:
+    database:
+      replace: none   # 이 설정은 임베디드 데이터베이스 사용을 막습니다.
