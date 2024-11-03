@@ -4,7 +4,7 @@ import com.example.ranchat.LoginUserResolver;
 import com.example.ranchat.exception.UsernameDuplicationException;
 import com.example.ranchat.response.ResponseCode;
 import com.example.ranchat.user.dto.JoinDTO;
-import com.example.ranchat.user.repository.UserRepository;
+import com.example.ranchat.user.repository.UserJpaRepository;
 import com.example.ranchat.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -42,7 +42,7 @@ class UserControllerTest {
     private LoginUserResolver loginUserResolver;
 
     @MockBean
-    private UserRepository userRepository;
+    private UserJpaRepository userJpaRepository;
 
 
 

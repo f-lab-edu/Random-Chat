@@ -10,15 +10,10 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +22,7 @@ class LoginFilterTest {
     private AuthenticationManager authenticationManager;
 
     @Mock
-    private JWTUtil jwtUtil;
+    private JWTParser jwtParser;
 
     @Mock
     private HttpServletRequest request;
@@ -43,7 +38,7 @@ class LoginFilterTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        loginFilter = new LoginFilter(authenticationManager, jwtUtil);
+        loginFilter = new LoginFilter(authenticationManager, jwtParser);
     }
 
     @DisplayName("successfulAuthentication - JWT 토큰이 헤더에 잘 들어가는지 확인")
@@ -59,7 +54,7 @@ class LoginFilterTest {
         Authentication authentication = new UsernamePasswordAuthenticationToken(customUserDetails, null, customUserDetails.getAuthorities());
 
         // JWT 모킹
-        when(jwtUtil.createJwt(customUserDetails.getUsername(), "USER", 60 * 60 * 100L)).thenReturn("mockJwtToken");
+        when(jwtParser.createJwt(customUserDetails.getUsername(), "USER", 60 * 60 * 100L)).thenReturn("mockJwtToken");
 
         //when
         loginFilter.successfulAuthentication(request, response, filterChain, authentication);
