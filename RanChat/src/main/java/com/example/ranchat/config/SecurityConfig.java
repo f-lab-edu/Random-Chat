@@ -1,8 +1,6 @@
 package com.example.ranchat.config;
 
-import com.example.ranchat.jwt.JWTFilter;
-import com.example.ranchat.jwt.JWTUtil;
-import com.example.ranchat.jwt.LoginFilter;
+import com.example.ranchat.jwt.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -26,7 +24,7 @@ import java.util.Collections;
 public class SecurityConfig {
     //AuthenticationManager가 인자로 받을 AuthenticationConfiguraion 객체 생성자 주입
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final JWTUtil jwtUtil;
+    private final JWTParser jwtParser;
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws  Exception {
@@ -53,12 +51,13 @@ public class SecurityConfig {
         //경로별 인가 작업
         http
                 .authorizeHttpRequests((auth) -> auth
-                        .requestMatchers("/api/login", "/", "/api/join").permitAll()
+                        .requestMatchers("/api/user/login", "/", "/api/user/join").permitAll()
                         .anyRequest().authenticated());
         http
-                .addFilterBefore(new JWTFilter(jwtUtil), LoginFilter.class);
+                .addFilterBefore(new JWTFilter(jwtParser), LoginFilter.class);
+
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil), UsernamePasswordAuthenticationFilter.class);
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtParser), UsernamePasswordAuthenticationFilter.class);
 
         //세션 설정
         http

@@ -14,12 +14,12 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    private final UserRepository userRepository;
+    private final UserRepository userRepositoryJpa;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     public ResponseEntity<String> join(JoinDTO joinDTO) {
         String username = joinDTO.getUsername();
         String password = joinDTO.getPassword();
-        Boolean isExist = userRepository.existsByUsername(username);
+        Boolean isExist = userRepositoryJpa.existsByUsername(username);
 
         if (isExist) {
             throw new UsernameDuplicationException(ResponseCode.NOT_ALLOWED, "이미 존재하는 username 입니다.");
@@ -31,7 +31,7 @@ public class UserService {
                 .role("ROLE_USER")
                 .build();
 
-        userRepository.save(user);
+        userRepositoryJpa.save(user);
 
         return new ResponseEntity<>(username + " created", HttpStatus.CREATED);
     }
