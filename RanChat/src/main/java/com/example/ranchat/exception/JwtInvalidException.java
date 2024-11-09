@@ -8,12 +8,4 @@ public class JwtInvalidException extends ExceptionBase{
     public JwtInvalidException(ResponseCode responseCode) {
         super(responseCode);
     }
-
-    public JwtInvalidException(ResponseCode responseCode, @Nullable String message) {
-        super(responseCode, message);
-    }
-    @Override
-    public HttpStatus getStatusCode() {
-        return HttpStatus.UNAUTHORIZED;
-    }
 }

@@ -6,7 +6,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Repository;
 
-@Repository
+@Repository("UserRepositoryJdbcImpl")
 @RequiredArgsConstructor
 public class UserRepositoryJdbcImpl implements UserRepository{
     private final JdbcTemplate jdbcTemplate;

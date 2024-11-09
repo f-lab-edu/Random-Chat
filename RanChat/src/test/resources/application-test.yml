@@ -1,9 +1,11 @@
 spring:
+  jwt:
+    secret: "asdfdasfadsvmadsvmasdlfmasdfadsmfdaskfasdfasd"
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/myDB
     username: root
-    password: ${MYSQL_PASSWORD}
+    password: root
   jpa:
     show_sql: true
     hibernate:

@@ -20,7 +20,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final JWTParser jwtParser;
 
     public LoginFilter(AuthenticationManager authenticationManager, JWTParser jwtParser) {
-        super.setFilterProcessesUrl("/api/login"); // URL 변경
+        super.setFilterProcessesUrl("/api/user/login"); // URL 변경
         this.authenticationManager = authenticationManager;
         this.jwtParser = jwtParser;
     }
