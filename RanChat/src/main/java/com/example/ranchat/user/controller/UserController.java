@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
     private final UserService userService;
 
+    @GetMapping("/test")
+    public String test() {
+        return "test ok";
+    }
 
     @PostMapping("/join")
     public ResponseEntity<String> join(@Valid @RequestBody JoinDTO joinDTO) {

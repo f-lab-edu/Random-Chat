@@ -8,12 +8,4 @@ public class UsernameDuplicationException extends ExceptionBase{
     public UsernameDuplicationException(ResponseCode responseCode) {
         super(responseCode);
     }
-
-    public UsernameDuplicationException(ResponseCode responseCode, @Nullable String message) {
-        super(responseCode, message);
-    }
-    @Override
-    public HttpStatus getStatusCode() {
-        return HttpStatus.CONFLICT;
-    }
 }

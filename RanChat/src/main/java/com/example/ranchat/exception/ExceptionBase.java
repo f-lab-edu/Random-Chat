@@ -10,15 +10,13 @@ public abstract class ExceptionBase extends RuntimeException{
     protected final ResponseCode errorCode;
 
     public ExceptionBase(ResponseCode errorCode) {
-        super();
+        super(errorCode.getMessage());
         this.errorCode = errorCode;
     }
 
-    public ExceptionBase(ResponseCode errorCode, String message) {
-        super(message);
-        this.errorCode = errorCode;
+    // abstract 메서드 -> ResponseCode 에서 꺼내기
+    public HttpStatus getStatusCode() {
+        return errorCode.getHttpStatus();
     }
-    // 커스텀 예외는 Status 코드가 무조건 있어야 한다.
-    public abstract HttpStatus getStatusCode();
 
 }

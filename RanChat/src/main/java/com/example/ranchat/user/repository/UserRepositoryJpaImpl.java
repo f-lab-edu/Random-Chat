@@ -3,7 +3,7 @@ package com.example.ranchat.user.repository;
 import com.example.ranchat.user.entity.User;
 import org.springframework.stereotype.Repository;
 
-//@Repository
+@Repository("UserRepositoryJpaImpl")
 public class UserRepositoryJpaImpl implements UserRepository{
     private final UserJpaRepository userJpaRepository;
 
