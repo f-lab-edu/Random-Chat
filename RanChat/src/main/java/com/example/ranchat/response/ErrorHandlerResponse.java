@@ -1,6 +1,7 @@
 package com.example.ranchat.response;
 
 import com.example.ranchat.exception.ExceptionBase;
+import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
 
@@ -14,34 +15,45 @@ public class ErrorHandlerResponse {
     private HttpStatus status;
     // 단일 메세지와 다중 메세지를 다 처리 가능
     private List<String> message = new ArrayList<>();
-    private ResponseCode errorCode;
+    private ResponseCode responseCode;
     private LocalDateTime timestamp;
 
-    // 커스텀 예외를 처리하는 생성자
-    public ErrorHandlerResponse(ExceptionBase exception) {
-        this.status = exception.getStatusCode();
+    @Builder
+    public ErrorHandlerResponse(HttpStatus httpStatus, List<String> message, ResponseCode responseCode, LocalDateTime timestamp) {
+        this.status = httpStatus;
         // null 처리를 다 해줘야 하나?? 어느 경우에 null 처리를 하고 어느 경우에 null 처리를 안해도 되는가..
-        this.message.add(exception.getMessage());
-        this.errorCode = exception.getErrorCode();
-        this.timestamp = LocalDateTime.now();
+        this.message = message;
+        this.responseCode = responseCode;
+        this.timestamp = timestamp;
+    }
+
+    // 커스텀 예외를 처리하는 팩토리 메서드
+    public static ErrorHandlerResponse fromException(ExceptionBase exceptionBase) {
+        return ErrorHandlerResponse.builder()
+                .responseCode(exceptionBase.getResponseCode())
+                .httpStatus(exceptionBase.getResponseCode().getHttpStatus())
+                .message(List.of(exceptionBase.getMessage()))
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
     // 일반 예외를 처리하는 생성자
-    public ErrorHandlerResponse(Exception exception)
-    {
-        this.status = HttpStatus.INTERNAL_SERVER_ERROR;
-        this.message.add(exception.getMessage());
-        this.errorCode = ResponseCode.UN_KNOWN_ERROR;
-        this.timestamp = LocalDateTime.now();
-    }
-    // 유효성 검증 실패 Response
-    public ErrorHandlerResponse(Exception exception,List<String> errors){
-        this.status = HttpStatus.BAD_REQUEST;
-        // null 처리
-        this.message = Optional.ofNullable(errors).orElse(new ArrayList<>());
-        this.errorCode = ResponseCode.INVALID_PARAMETER;
-        this.timestamp = LocalDateTime.now();
+    public static ErrorHandlerResponse fromException(Exception exception) {
+        ResponseCode responseCode = ResponseCode.UN_KNOWN_ERROR;
+        return ErrorHandlerResponse.builder()
+                .responseCode(responseCode)
+                .httpStatus(responseCode.getHttpStatus())
+                .message(List.of(responseCode.getMessage()))
+                .timestamp(LocalDateTime.now())
+                .build();
     }
 
-
+    public static ErrorHandlerResponse fromValidationException(List<String> errors) {
+        return ErrorHandlerResponse.builder()
+                .httpStatus(HttpStatus.BAD_REQUEST)
+                .responseCode(ResponseCode.UN_KNOWN_ERROR)
+                .message(errors)
+                .timestamp(LocalDateTime.now())
+                .build();
+    }
 }

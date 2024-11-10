@@ -62,7 +62,7 @@ class UserServiceTest {
              userService.join(joinDTO);
          });
 
-         assertEquals(exception.getErrorCode(),ResponseCode.DUPLICATED_USERNAME);
+         assertEquals(exception.getResponseCode(),ResponseCode.DUPLICATED_USERNAME);
          assertEquals(exception.getMessage(), "이미 존재하는 username 입니다.");
 
 

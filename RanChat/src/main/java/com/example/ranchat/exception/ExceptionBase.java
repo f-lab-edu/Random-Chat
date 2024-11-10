@@ -7,16 +7,16 @@ import org.springframework.http.HttpStatus;
 
 public abstract class ExceptionBase extends RuntimeException{
     @Getter
-    protected final ResponseCode errorCode;
+    protected final ResponseCode responseCode;
 
     public ExceptionBase(ResponseCode errorCode) {
         super(errorCode.getMessage());
-        this.errorCode = errorCode;
+        this.responseCode = errorCode;
     }
 
     // abstract 메서드 -> ResponseCode 에서 꺼내기
     public HttpStatus getStatusCode() {
-        return errorCode.getHttpStatus();
+        return responseCode.getHttpStatus();
     }
 
 }

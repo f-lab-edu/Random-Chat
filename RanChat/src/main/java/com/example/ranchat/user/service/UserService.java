@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserService {
-    @Qualifier("UserRepositoryJdbcImpl")
     private final UserRepository userRepositoryJpa;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     public ResponseEntity<String> join(JoinDTO joinDTO) {
