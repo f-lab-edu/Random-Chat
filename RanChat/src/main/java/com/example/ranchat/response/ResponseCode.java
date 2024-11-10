@@ -32,10 +32,10 @@ public enum ResponseCode {
     NOT_FOUND_USER(4033, "User not found", HttpStatus.FORBIDDEN),
 
     // HTTP_CODE 409
-    DUPLICATED_USERNAME(4016, "이미 존재하는 username 입니다.", HttpStatus.CONFLICT),
+    DUPLICATED_USERNAME(4091, "이미 존재하는 username 입니다.", HttpStatus.CONFLICT),
 
     // HTTP_CODE 500
-    UN_KNOWN_ERROR(5000, "Unknown error", HttpStatus.INTERNAL_SERVER_ERROR);
+    UN_KNOWN_ERROR(5000, "정의된 예외가 아닙니다.", HttpStatus.INTERNAL_SERVER_ERROR);
 
 
     private final int code;

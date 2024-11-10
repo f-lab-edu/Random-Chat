@@ -21,7 +21,7 @@ public class ExceptionResolver {
     @ExceptionHandler(ExceptionBase.class)
     public ResponseEntity<ErrorHandlerResponse> userNotFoundExceptionHandler(ExceptionBase exception) {
         log.error("Custom Exception: {}", exception.getMessage(), exception);
-        ErrorHandlerResponse errorResponse = new ErrorHandlerResponse(exception);
+        ErrorHandlerResponse errorResponse = ErrorHandlerResponse.fromException(exception);
         HttpStatus httpStatus = errorResponse.getStatus();
         return new ResponseEntity<>(errorResponse, httpStatus);
     }
@@ -39,13 +39,13 @@ public class ExceptionResolver {
                 .collect(Collectors.toList());
         log.error("Validation Exception: {}", errorMessagesForLog, exception);
         // 문제 검증 메세지가 하나가 아니야
-        return new ResponseEntity<>(new ErrorHandlerResponse(exception,errorMessagesForClient),HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(ErrorHandlerResponse.fromValidationException(errorMessagesForClient),HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorHandlerResponse> handleGeneralException(HttpServletRequest request, Exception exception) {
         log.error("Unhandled Exception: {}", exception.getMessage(), exception);
-        ErrorHandlerResponse errorResponse = new ErrorHandlerResponse(exception);
+        ErrorHandlerResponse errorResponse = ErrorHandlerResponse.fromException(exception);
         return new ResponseEntity<>(errorResponse, errorResponse.getStatus());
     }
 

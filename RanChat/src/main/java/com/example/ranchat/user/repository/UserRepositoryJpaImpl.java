@@ -1,9 +1,11 @@
 package com.example.ranchat.user.repository;
 
 import com.example.ranchat.user.entity.User;
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 @Repository("UserRepositoryJpaImpl")
+@Primary
 public class UserRepositoryJpaImpl implements UserRepository{
     private final UserJpaRepository userJpaRepository;
 
