@@ -1,0 +1,111 @@
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ "main", "initProject" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Make application-prod.yml
+        run: |
+          cd ./RanChat/src/main/resources
+          touch ./application-prod.yml
+          echo "${{ secrets.APPLICATION_PROD }}" >> ./application-prod.yml
+        shell: bash
+
+      - name: Build with Gradle
+        run: |
+          chmod +x ./gradlew
+          ./gradlew clean build -x test
+        working-directory: ./RanChat
+
+      - name: Build with Gradle 8.5
+        run: ./gradlew bootJar
+        working-directory: ./RanChat
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Docker login
+        run: docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Docker build backend & push to docker repo
+        uses: docker/build-push-action@v3
+        with:
+          context: ./RanChat
+          file: ./RanChat/dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_REPO }}:backend
+          cache-from: type=registry,ref=${{ secrets.DOCKER_REPO }}:backend-cache
+          cache-to: type=registry,ref=${{ secrets.DOCKER_REPO }}:backend-cache,mode=max
+
+  deploy_server1:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server1
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST1 }}
+          username: ec2-user
+          key: ${{ secrets.KEY1 }}
+          envs: GITHUB_SHA
+          script: |
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            sudo docker pull ${{ secrets.DOCKER_REPO }}:backend
+            docker-compose up -d
+            sudo docker image prune -f
+            # 헬스 체크 시도
+            for i in {1..5}; do
+              echo "헬스 체크 시도 #$i..."
+              curl -f http://localhost:8080/api/health && break
+              echo "헬스 체크 실패. 10초 후에 다시 시도합니다..."
+              sleep 10
+            done
+            if [ $i -eq 5 ]; then
+              echo "헬스 체크 실패. 배포를 중단합니다."
+              exit 1
+            fi
+
+  deploy_server2:
+    needs: deploy_server1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to server2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.HOST2 }}
+          username: ec2-user
+          key: ${{ secrets.KEY2 }}
+          envs: GITHUB_SHA
+          script: |
+            sudo docker rm -f $(docker ps -qa)
+            sudo docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+            sudo docker pull ${{ secrets.DOCKER_REPO }}:backend
+            docker-compose up -d
+            sudo docker image prune -f
+            # 헬스 체크 시도
+            for i in {1..5}; do
+              echo "헬스 체크 시도 #$i..."
+              curl -f http://localhost:8080/api/health && break
+              echo "헬스 체크 실패. 10초 후에 다시 시도합니다..."
+              sleep 10
+            done
+            if [ $i -eq 5 ]; then
+              echo "헬스 체크 실패. 배포를 중단합니다."
+              exit 1
+            fi
