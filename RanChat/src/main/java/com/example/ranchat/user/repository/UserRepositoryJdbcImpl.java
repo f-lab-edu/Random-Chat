@@ -17,20 +17,20 @@ public class UserRepositoryJdbcImpl implements UserRepository{
             .build();
     @Override
     public Boolean existsByUsername(String username) {
-        String sql = "SELECT COUNT(*) FROM user WHERE username = ?";
+        String sql = "SELECT COUNT(*) FROM users WHERE username = ?";
         Integer count = jdbcTemplate.queryForObject(sql, Integer.class, username);
         return count != null && count > 0;
     }
 
     @Override
     public User findByUsername(String username) {
-        String sql = "SELECT * FROM user WHERE username = ?";
+        String sql = "SELECT * FROM users WHERE username = ?";
         return jdbcTemplate.queryForObject(sql, userRowMapper, username);
     }
 
     @Override
     public User save(User user) {
-        String sql = "INSERT INTO user (username, password, role) VALUES (?, ?, ?)";
+        String sql = "INSERT INTO users (username, password, role) VALUES (?, ?, ?)";
         jdbcTemplate.update(sql, user.getUsername(), user.getPassword(), user.getRole());
 
         return findByUsername(user.getUsername());

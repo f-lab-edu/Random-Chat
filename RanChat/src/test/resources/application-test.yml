@@ -2,10 +2,13 @@ spring:
   jwt:
     secret: "asdfdasfadsvmadsvmasdlfmasdfadsmfdaskfasdfasd"
   datasource:
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/myDB
+    url: jdbc:h2:mem:testdb;MODE=MYSQL
+    driver-class-name: org.h2.Driver
     username: root
     password: root
+  h2:
+    console:
+      enabled: true
   jpa:
     show_sql: true
     hibernate:
@@ -14,8 +17,8 @@ spring:
       hibernate:
         #        show_sql: true
         format_sql: true
-        dialect: org.hibernate.dialect.MySQL8Dialect
+        dialect: org.hibernate.dialect.H2Dialect
 
-  test:
-    database:
-      replace: none   # 이 설정은 임베디드 데이터베이스 사용을 막습니다.
+#  test:
+#    database:
+#      replace: none   # 이 설정은 임베디드 데이터베이스 사용을 막습니다.
