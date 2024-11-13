@@ -63,7 +63,7 @@ class UserServiceTest {
          });
 
          assertEquals(exception.getResponseCode(),ResponseCode.DUPLICATED_USERNAME);
-         assertEquals(exception.getMessage(), "이미 존재하는 username 입니다.!!!");
+         assertEquals(exception.getMessage(), "이미 존재하는 username 입니다.");
 
 
      }
