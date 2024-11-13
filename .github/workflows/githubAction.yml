@@ -60,8 +60,9 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST1 }}
-          username: ec2-user
-          key: ${{ secrets.KEY1 }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.KEY1 }}
+          port: ${{ secrets.PORT }}
           envs: GITHUB_SHA
           script: |
             sudo docker rm -f $(docker ps -qa)
@@ -89,8 +90,9 @@ jobs:
         uses: appleboy/ssh-action@master
         with:
           host: ${{ secrets.HOST2 }}
-          username: ec2-user
-          key: ${{ secrets.KEY2 }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.KEY2 }}
+          port: ${{ secrets.PORT }}
           envs: GITHUB_SHA
           script: |
             sudo docker rm -f $(docker ps -qa)
@@ -109,4 +111,3 @@ jobs:
               echo "헬스 체크 실패. 배포를 중단합니다."
               exit 1
             fi
- 
