@@ -11,7 +11,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.test.context.ContextConfiguration;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -20,6 +23,7 @@ import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
+
     @Mock
     private UserRepository userRepository;
 
@@ -58,7 +62,7 @@ class UserServiceTest {
              userService.join(joinDTO);
          });
 
-         assertEquals(exception.getErrorCode(),ResponseCode.NOT_ALLOWED);
+         assertEquals(exception.getResponseCode(),ResponseCode.DUPLICATED_USERNAME);
          assertEquals(exception.getMessage(), "이미 존재하는 username 입니다.");
 
 

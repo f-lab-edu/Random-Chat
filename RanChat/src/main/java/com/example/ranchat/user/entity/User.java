@@ -5,7 +5,7 @@ import com.example.ranchat.user.dto.JoinDTO;
 import jakarta.persistence.*;
 import lombok.*;
 
-@Entity
+@Entity(name = "users")
 @NoArgsConstructor
 @Getter
 public class User extends BaseEntity {

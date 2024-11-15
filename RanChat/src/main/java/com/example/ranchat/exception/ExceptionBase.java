@@ -6,18 +6,17 @@ import org.springframework.http.HttpStatus;
 
 
 public abstract class ExceptionBase extends RuntimeException{
-    // 커스텀 예외는 Status 코드가 무조건 있어야 한다.
-    public abstract HttpStatus getStatusCode();
-
-    protected String errorMessage;
-    //
     @Getter
-    protected ResponseCode errorCode;
+    protected final ResponseCode responseCode;
 
-    @Override
-    public String getMessage() {
-        return errorMessage;
+    public ExceptionBase(ResponseCode errorCode) {
+        super(errorCode.getMessage());
+        this.responseCode = errorCode;
     }
 
+    // abstract 메서드 -> ResponseCode 에서 꺼내기
+    public HttpStatus getStatusCode() {
+        return responseCode.getHttpStatus();
+    }
 
 }

@@ -4,7 +4,6 @@ import com.example.ranchat.user.dto.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -18,12 +17,12 @@ import java.util.Iterator;
 
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
     private final AuthenticationManager authenticationManager;
-    private final JWTUtil jwtUtil;
+    private final JWTParser jwtParser;
 
-    public LoginFilter(AuthenticationManager authenticationManager, JWTUtil jwtUtil) {
-        super.setFilterProcessesUrl("/api/login"); // URL 변경
+    public LoginFilter(AuthenticationManager authenticationManager, JWTParser jwtParser) {
+        super.setFilterProcessesUrl("/api/user/login"); // URL 변경
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.jwtParser = jwtParser;
     }
 
     @Override
@@ -56,7 +55,7 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
         String role = auth.getAuthority();
 
-        String token = jwtUtil.createJwt(username, role, 60*60*100L);
+        String token = jwtParser.createJwt(username, role, 60*60*100L);
 
         response.addHeader("Authorization", "Bearer " + token);
     }

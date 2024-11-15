@@ -4,7 +4,7 @@ import com.example.ranchat.LoginUserResolver;
 import com.example.ranchat.exception.UsernameDuplicationException;
 import com.example.ranchat.response.ResponseCode;
 import com.example.ranchat.user.dto.JoinDTO;
-import com.example.ranchat.user.repository.UserRepository;
+import com.example.ranchat.user.repository.UserJpaRepository;
 import com.example.ranchat.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -42,7 +43,7 @@ class UserControllerTest {
     private LoginUserResolver loginUserResolver;
 
     @MockBean
-    private UserRepository userRepository;
+    private UserJpaRepository userJpaRepository;
 
 
 
@@ -58,7 +59,7 @@ class UserControllerTest {
                 .thenReturn(ResponseEntity.status(201).body("상원 created"));
 
         //when then
-        mockMvc.perform(post("/api/join")
+        mockMvc.perform(post("/api/user/join")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(joinDTO)))
@@ -77,18 +78,16 @@ class UserControllerTest {
     void JoinUsernameNullTest() throws Exception{
         //given
         JoinDTO joinDTO = new JoinDTO(null, "12345678");
-        when(userService.join(Mockito.any(JoinDTO.class)))
-                .thenReturn(ResponseEntity.status(400).body("Username cannot be empty"));
 
         //when then
-        mockMvc.perform(post("/api/join")
+        mockMvc.perform(post("/api/user/join")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(joinDTO)))
 
-                // Then: 응답이 HTTP 200 OK이고, "ok"라는 문자열을 반환해야 한다.
+
                 .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Username cannot be empty"));
+                .andExpect(jsonPath("$.message").value("username: 유효하지 않은 값입니다."));
     }
 
     @DisplayName("회원가입 username NotEmpty 유효성, password NotEmpty 유효성 검증 테스트")
@@ -98,23 +97,18 @@ class UserControllerTest {
         //given
         JoinDTO joinDTO = new JoinDTO(null, null);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", List.of("Username cannot be empty", "Password cannot be empty"));
-
-        when(userService.join(Mockito.any(JoinDTO.class)))
-                .thenReturn(ResponseEntity.status(400).<String>body(response.toString()));
-
         //when then
-        mockMvc.perform(post("/api/join")
+        mockMvc.perform(post("/api/user/join")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(joinDTO)))
-
-                // Then: 응답이 HTTP 200 OK이고, "ok"라는 문자열을 반환해야 한다.
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message", hasSize(2)))
-                .andExpect(jsonPath("$.message[0]").value("Username cannot be empty"))
-                .andExpect(jsonPath("$.message[1]").value("Password cannot be empty"));
+                .andExpect(jsonPath("$.message", containsInAnyOrder(
+                        "username: 유효하지 않은 값입니다.",
+                        "password: 유효하지 않은 값입니다."
+                )));
+
     }
     @DisplayName("이미 존재하는 username이면 회원가입 시 발생한 예외를 exceptionHandler가 잘 처리")
     @WithMockUser("user1")
@@ -123,10 +117,10 @@ class UserControllerTest {
         // given
         JoinDTO joinDTO = new JoinDTO("existingUser", "password123");
         when(userService.join(any(JoinDTO.class)))
-                .thenThrow(new UsernameDuplicationException(ResponseCode.NOT_ALLOWED, "이미 존재하는 username 입니다."));
+                .thenThrow(new UsernameDuplicationException(ResponseCode.DUPLICATED_USERNAME));
 
         // when & then
-        mockMvc.perform(post("/api/join")
+        mockMvc.perform(post("/api/user/join")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(new ObjectMapper().writeValueAsString(joinDTO)))

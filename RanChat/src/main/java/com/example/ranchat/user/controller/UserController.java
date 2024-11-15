@@ -13,17 +13,20 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 @Slf4j
 public class UserController {
     private final UserService userService;
 
+    @GetMapping("/test")
+    public String test() {
+        return "test ok";
+    }
 
     @PostMapping("/join")
     public ResponseEntity<String> join(@Valid @RequestBody JoinDTO joinDTO) {
         return userService.join(joinDTO);
-
     }
 
     @GetMapping("/jwt-check")
