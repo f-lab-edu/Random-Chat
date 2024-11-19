@@ -1,9 +1,13 @@
 package com.example.ranchat.user.entity;
 
 import com.example.ranchat.BaseEntity;
-import com.example.ranchat.user.dto.JoinDTO;
+import com.example.ranchat.message.entity.Message;
+import com.example.ranchat.chatroom.entity.userchatroom.UserChatRoom;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity(name = "users")
 @NoArgsConstructor
@@ -20,6 +24,12 @@ public class User extends BaseEntity {
 
     private String role;
 
+    @OneToMany(mappedBy = "user")
+    private List<Message> messages = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user")
+    private List<UserChatRoom> userChatRooms = new ArrayList<>();
+
     @Builder
     public User(String username, String password, String role) {
         this.username = username;
@@ -29,6 +39,13 @@ public class User extends BaseEntity {
 
 
 
+    public void addMessage(Message message) {
+        messages.add(message);
+        message.setUser(this);
+    }
 
-
+    public void removeMessage(Message message) {
+        messages.remove(message);
+        message.setUser(null);
+    }
 }
