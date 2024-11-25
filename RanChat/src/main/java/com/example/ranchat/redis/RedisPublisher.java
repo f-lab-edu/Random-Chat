@@ -13,11 +13,9 @@ import org.springframework.stereotype.Service;
 public class RedisPublisher {
 
     private final RedisTemplate<String, String> redisTemplate;
-    private final ObjectMapper objectMapper;
 
-    public void publish(String channel, Object message) {
+    public void publish(String channel, String message) {
         redisTemplate.convertAndSend(channel, message);
-        log.info("Published message to channel {}: {}", channel, message);
     }
 
     public void publishMessage(String message) {

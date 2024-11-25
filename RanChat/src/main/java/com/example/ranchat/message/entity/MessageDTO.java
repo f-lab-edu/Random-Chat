@@ -5,14 +5,16 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MatchNotificationDTO {
-    private String type;
+public class MessageDTO {
     private String chatRoomId;
     private String content;
     private String webSocketSessionId;
-    private String userId;
+    private String sender;
+    private LocalDateTime timestamp;
 }

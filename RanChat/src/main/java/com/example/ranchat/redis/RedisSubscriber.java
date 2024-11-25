@@ -1,6 +1,6 @@
 package com.example.ranchat.redis;
 
-import com.example.ranchat.message.entity.MatchNotificationDTO;
+import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.Service.RedisService;
 import com.example.ranchat.websocket.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,8 +31,8 @@ public class RedisSubscriber implements MessageListener {
         log.info("Received message from channel {}: {}", channel, body);
 
         try {
-            MatchNotificationDTO notification = objectMapper.readValue(body, MatchNotificationDTO.class);
-            String chatRoomId = notification.getChatRoomId();
+            MessageDTO messageDTO = objectMapper.readValue(body, MessageDTO.class);
+            String chatRoomId = messageDTO.getChatRoomId();
             List<String> userIds = redisService.getUserIds(chatRoomId);
 
             if (!userIds.isEmpty()) {

@@ -1,7 +1,7 @@
 package com.example.ranchat.websocket;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
-import com.example.ranchat.message.entity.MatchNotificationDTO;
+import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.RedisPublisher;
 import com.example.ranchat.redis.Service.RedisService;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -58,10 +59,10 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     @Override
     public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
         // 메시지 처리 로직 구현
-        String payload = message.getPayload().toString();
+        String payload = (String) message.getPayload();
+        String chatRoomId = getChatRoomIdFromMessage(payload);
 
         // 채팅 메시지를 Redis에 발행
-        String chatRoomId = getChatRoomIdFromMessage(payload);
         if (chatRoomId != null) {
             redisPublisher.publish("chatRoom:" + chatRoomId, payload);
         } else {
@@ -109,9 +110,9 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     private String makeExitMessage(String userId) {
-        MatchNotificationDTO exitMessage = MatchNotificationDTO.builder()
-                .type("exit")
+        MessageDTO exitMessage = MessageDTO.builder()
                 .content(userId + "님이 퇴장합니다")
+                .timestamp(LocalDateTime.now())
                 .build();
         try {
             String message = objectMapper.writeValueAsString(exitMessage);
@@ -144,10 +145,9 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         // 메시지에서 chatRoomId를 추출하는 로직을 구현합니다.
         // 예를 들어, JSON 메시지라면 파싱하여 chatRoomId를 가져옵니다.
         try {
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readTree(message);
+            JsonNode node = objectMapper.readTree(message);
             return node.has("chatRoomId") ? node.get("chatRoomId").asText() : null;
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             log.error("Failed to extract chatRoomId from message", e);
             return null;
         }

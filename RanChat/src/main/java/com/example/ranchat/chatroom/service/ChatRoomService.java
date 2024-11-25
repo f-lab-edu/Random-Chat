@@ -2,7 +2,7 @@ package com.example.ranchat.chatroom.service;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
 import com.example.ranchat.exception.NotFoundUserException;
-import com.example.ranchat.message.entity.MatchNotificationDTO;
+import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.RedisPublisher;
 import com.example.ranchat.redis.Service.RedisService;
 import com.example.ranchat.response.ResponseCode;
@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -73,10 +74,10 @@ public class ChatRoomService {
         // 매칭된 사용자에게 채팅방 입장 메시지를 전송합니다.
         // 메시지에 채팅방 ID를 포함하여 전송합니다.(확인용 개발 다 하고 삭제)
         String userId = userInfo.getUserId();
-        MatchNotificationDTO notification = new MatchNotificationDTO("MATCH", chatRoomId,
-                userId + "님이 입장했습니다.",websocketSessionId,userId);
+        MessageDTO messageDTO = new MessageDTO(chatRoomId,
+                userId + "님이 입장했습니다.", websocketSessionId, userId, LocalDateTime.now());
         try {
-            String message = objectMapper.writeValueAsString(notification);
+            String message = objectMapper.writeValueAsString(messageDTO);
 
             redisPublisher.publish("chatRoom:" + chatRoomId, message);
             log.info("메시지 두 번 나가는거 맞나?");
