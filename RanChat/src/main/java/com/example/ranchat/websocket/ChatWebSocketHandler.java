@@ -1,19 +1,20 @@
 package com.example.ranchat.websocket;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
+import com.example.ranchat.message.entity.MatchNotificationDTO;
 import com.example.ranchat.redis.RedisPublisher;
-import com.example.ranchat.redis.RedisSubscriber;
 import com.example.ranchat.redis.Service.RedisService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mysql.cj.log.Log;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
-import java.util.concurrent.ConcurrentHashMap;
+
+import java.io.IOException;
+import java.util.List;
 
 
 @Component
@@ -24,6 +25,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     private final RedisService redisService;
     private final RedisPublisher redisPublisher;
     private final SessionManager sessionManager;
+    private final ObjectMapper objectMapper;
 
     @Value("${spring.server.id}")
     private String serverId;
@@ -58,10 +60,6 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         // 메시지 처리 로직 구현
         String payload = message.getPayload().toString();
 
-        // 메시지를 파싱하여 액션을 결정합니다.
-        // 예: 채팅 메시지 전송, 매칭 요청 등
-        // 여기서는 채팅 메시지라고 가정하고 처리합니다.
-
         // 채팅 메시지를 Redis에 발행
         String chatRoomId = getChatRoomIdFromMessage(payload);
         if (chatRoomId != null) {
@@ -79,21 +77,48 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     }
 
     @Override
-    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
+    public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws IOException {
         // 세션 종료 시 처리 로직
-        String sessionId = session.getId();
         String userId = getUserIdFromSession(session);
 
         // Redis에서 세션 정보 삭제
         if (userId != null) {
-            redisService.deleteUserSessionInfoBySessionId(userId);
+            String chatRoomId = (String) session.getAttributes().get("chatRoomId");
+
+            String exitMessage = makeExitMessage(userId);
+            List<String> userIds = redisService.getUserIds(chatRoomId);
+            for (String id : userIds) {
+                if (id.equals(userId)) {
+                    continue;
+                }
+                WebSocketSession friendSession = sessionManager.getSession(id);
+                friendSession.sendMessage(new TextMessage(exitMessage));
+            }
+
+            redisService.deleteUserSessionInfo(userId);
             // 로컬 맵에서 세션 삭제
             sessionManager.removeSession(userId);
+
+            redisService.deleteChatRoomInfo(chatRoomId);
+
 
             log.info("User disconnected: {}", userId);
         }
 
 
+    }
+
+    private String makeExitMessage(String userId) {
+        MatchNotificationDTO exitMessage = MatchNotificationDTO.builder()
+                .type("exit")
+                .content(userId + "님이 퇴장합니다")
+                .build();
+        try {
+            String message = objectMapper.writeValueAsString(exitMessage);
+            return message;
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

@@ -34,11 +34,15 @@ public class RedisSubscriber implements MessageListener {
             MatchNotificationDTO notification = objectMapper.readValue(body, MatchNotificationDTO.class);
             String chatRoomId = notification.getChatRoomId();
             List<String> userIds = redisService.getUserIds(chatRoomId);
+
             if (!userIds.isEmpty()) {
                 for (String userId : userIds) {
                     WebSocketSession session = sessionManager.getSession(userId);
                     if (session != null && session.isOpen()) {
-                        session.sendMessage(new TextMessage(body));
+                        synchronized (session) {
+                            session.sendMessage(new TextMessage(body));
+                        }
+                        session.getAttributes().put("chatRoomId", chatRoomId);
                         log.info("웹소켓에 메시지 전송");
                     } else {
                         log.warn("활성화된 웹소켓 세션이 없다.");

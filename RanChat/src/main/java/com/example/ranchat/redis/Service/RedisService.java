@@ -3,7 +3,6 @@ package com.example.ranchat.redis.Service;
 import com.example.ranchat.chatroom.UserSessionInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +22,7 @@ public class RedisService {
         redisTemplate.opsForHash().put(key, "serverId", info.getServerId());
     }
 
-    public void deleteUserSessionInfoBySessionId(String userId) {
+    public void deleteUserSessionInfo(String userId) {
         String key = "userSession:" + userId;
         log.info("delete key: " + key);
         redisTemplate.delete(key);
@@ -65,9 +64,13 @@ public class RedisService {
         return ts != null ? Long.parseLong(ts) : null;
     }
 
-    public void saveUserIdsWithRoomId(String chatRoomId, String userId1, String userId2) {
+    public void saveChatRoomInfo(String chatRoomId, String userId1, String userId2) {
         redisTemplate.opsForHash().put(chatRoomId, "userId1", userId1);
         redisTemplate.opsForHash().put(chatRoomId, "userId2", userId2);
+    }
+
+    public void deleteChatRoomInfo(String chatRoomId) {
+        redisTemplate.delete(chatRoomId);
     }
 
     public List<String> getUserIds(String chatRoomId) {

@@ -8,15 +8,9 @@ import com.example.ranchat.redis.Service.RedisService;
 import com.example.ranchat.response.ResponseCode;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.retry.annotation.Backoff;
-import org.springframework.retry.annotation.Recover;
-import org.springframework.retry.annotation.Retryable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -54,12 +48,12 @@ public class ChatRoomService {
                 // 채팅방 ID 생성
                 String chatRoomId = UUID.randomUUID().toString();
                 // 레디스에 저장
-                redisService.saveUserIdsWithRoomId(chatRoomId, userId, otherUserId);
+                redisService.saveChatRoomInfo(chatRoomId, userId, otherUserId);
                 // 각종 채팅방 관련 엔티티 만들어주기 or JDBC로 만들기, 일단 패스
 
                 // 두 사용자에게 채팅방 입장 메시지 전송
-                sendMatchNotification(currentUserInfo, otherUserInfo, chatRoomId);
-
+                sendMatchNotification(currentUserInfo, chatRoomId, currentUserInfo.getWebSocketSessionId());
+                sendMatchNotification(otherUserInfo, chatRoomId, otherUserInfo.getWebSocketSessionId());
             } else {
                 log.warn("User session info not found for user {}", otherUserId);
                 // 필요 시 재시도 로직 추가
@@ -75,17 +69,17 @@ public class ChatRoomService {
         return otherUserId;
     }
 
-    private void sendMatchNotification(UserSessionInfo userInfo1, UserSessionInfo userInfo2, String chatRoomId) {
+    private void sendMatchNotification(UserSessionInfo userInfo, String chatRoomId, String websocketSessionId) {
         // 매칭된 사용자에게 채팅방 입장 메시지를 전송합니다.
         // 메시지에 채팅방 ID를 포함하여 전송합니다.(확인용 개발 다 하고 삭제)
-        String messageContent = userInfo1.getUserId() + "님이 입장했습니다.\n" + userInfo2.getUserId() + "님이 입장했습니다.";
-
-        MatchNotificationDTO notification = new MatchNotificationDTO("MATCH", chatRoomId, messageContent, userInfo1.getWebSocketSessionId(), userInfo1.getUserId());
-
+        String userId = userInfo.getUserId();
+        MatchNotificationDTO notification = new MatchNotificationDTO("MATCH", chatRoomId,
+                userId + "님이 입장했습니다.",websocketSessionId,userId);
         try {
             String message = objectMapper.writeValueAsString(notification);
-            redisPublisher.publish("chatRoom:" + chatRoomId, message);
 
+            redisPublisher.publish("chatRoom:" + chatRoomId, message);
+            log.info("메시지 두 번 나가는거 맞나?");
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize MatchNotification", e);
             throw new RuntimeException(e);
