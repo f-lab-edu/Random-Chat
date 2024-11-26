@@ -6,5 +6,4 @@ import lombok.Data;
 public class UserSessionInfo {
     private String userId;
     private String webSocketSessionId;
-    private String serverId;
 }

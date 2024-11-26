@@ -28,8 +28,6 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     private final SessionManager sessionManager;
     private final ObjectMapper objectMapper;
 
-    @Value("${spring.server.id}")
-    private String serverId;
 
     // 사용자 ID와 세션의 매핑을 관리하는 맵
 
@@ -47,7 +45,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         UserSessionInfo sessionInfo = new UserSessionInfo();
         sessionInfo.setUserId(userId);
         sessionInfo.setWebSocketSessionId(sessionId);
-        sessionInfo.setServerId(serverId);
+
 
         redisService.saveUserSessionInfo(sessionInfo);
 
@@ -85,15 +83,27 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         // Redis에서 세션 정보 삭제
         if (userId != null) {
             String chatRoomId = (String) session.getAttributes().get("chatRoomId");
-
+            // 웹소켓 연결만 된 경우
+            if (chatRoomId == null) {
+                log.info("채팅방 연결을 아직 안했기 때문에 레디스에서 세션만 제거합니다.");
+                redisService.deleteUserSessionInfo(userId);
+                // 로컬 맵에서 세션 삭제
+                sessionManager.removeSession(userId);
+                return;
+            }
             String exitMessage = makeExitMessage(userId);
+
             List<String> userIds = redisService.getUserIds(chatRoomId);
-            for (String id : userIds) {
-                if (id.equals(userId)) {
-                    continue;
+            // A랑B가 채팅 중 -> A 웹소켓 종료 -> 레디스 비움 -> B는 종료할 때 userIds == null
+            if(userIds != null) {
+                for (String id : userIds) {
+                    if (id.equals(userId)) {
+                        continue;
+                    }
+                    // 상대에게 퇴장 메세지 보내기
+                    WebSocketSession friendSession = sessionManager.getSession(id);
+                    friendSession.sendMessage(new TextMessage(exitMessage));
                 }
-                WebSocketSession friendSession = sessionManager.getSession(id);
-                friendSession.sendMessage(new TextMessage(exitMessage));
             }
 
             redisService.deleteUserSessionInfo(userId);

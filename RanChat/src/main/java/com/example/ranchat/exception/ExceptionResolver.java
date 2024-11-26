@@ -20,7 +20,9 @@ public class ExceptionResolver {
     // ExceptionBase를 상속받는 모든 커스텀 예외를 처리
     @ExceptionHandler(ExceptionBase.class)
     public ResponseEntity<ErrorHandlerResponse> userNotFoundExceptionHandler(ExceptionBase exception) {
-        log.error("Custom Exception: {}", exception.getMessage(), exception);
+        log.error("Custom Exception: {}", exception.getMessage());
+        log.error("Stack Trace: ", exception);
+
         ErrorHandlerResponse errorResponse = ErrorHandlerResponse.fromException(exception);
         HttpStatus httpStatus = errorResponse.getStatus();
         return new ResponseEntity<>(errorResponse, httpStatus);

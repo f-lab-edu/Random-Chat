@@ -19,7 +19,18 @@ public class RedisService {
         String key = "userSession:" + info.getUserId();
         redisTemplate.opsForHash().put(key,"userId", info.getUserId());
         redisTemplate.opsForHash().put(key,"webSocketSessionId", info.getWebSocketSessionId());
-        redisTemplate.opsForHash().put(key, "serverId", info.getServerId());
+        redisTemplate.opsForHash().put(key,"isMatched", "false");
+    }
+
+    public void setMatchStatusTrue(String userId) {
+        String key = "userSession:" + userId;
+        redisTemplate.opsForHash().put(key, "isMatched", "true");
+    }
+
+    // 매칭 여부를 확인하기 위한 필드 조회
+    public String isMatched(String userId) {
+        String key = "userSession:" + userId;
+        return (String) redisTemplate.opsForHash().get(key, "isMatched");
     }
 
     public void deleteUserSessionInfo(String userId) {
@@ -31,13 +42,11 @@ public class RedisService {
     public UserSessionInfo getUserSessionInfo(String userId) {
         String key = "userSession:" + userId;
         String webSocketSessionId = (String) redisTemplate.opsForHash().get(key, "webSocketSessionId");
-        String serverId = (String) redisTemplate.opsForHash().get(key, "serverId");
 
-        if (webSocketSessionId != null && serverId != null) {
+        if (webSocketSessionId != null) {
             UserSessionInfo info = new UserSessionInfo();
             info.setUserId(userId);
             info.setWebSocketSessionId(webSocketSessionId);
-            info.setServerId(serverId);
             return info;
         }
         return null;
@@ -59,10 +68,6 @@ public class RedisService {
         redisTemplate.opsForList().leftPush(queueName, userId);
     }
 
-    public Long getUserTimestamp(String userId) {
-        String ts = (String) redisTemplate.opsForHash().get("waitingTimestamp", userId);
-        return ts != null ? Long.parseLong(ts) : null;
-    }
 
     public void saveChatRoomInfo(String chatRoomId, String userId1, String userId2) {
         redisTemplate.opsForHash().put(chatRoomId, "userId1", userId1);

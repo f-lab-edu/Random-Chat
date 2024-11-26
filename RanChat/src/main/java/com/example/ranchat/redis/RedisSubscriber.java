@@ -28,14 +28,14 @@ public class RedisSubscriber implements MessageListener {
         String body = new String(message.getBody());
 
         log.info("body가 어떤 형태이지?: " + body);
-        log.info("Received message from channel {}: {}", channel, body);
 
         try {
             MessageDTO messageDTO = objectMapper.readValue(body, MessageDTO.class);
             String chatRoomId = messageDTO.getChatRoomId();
+            // 레디스에서 채팅방 세션에 있는 유저들을 가져온다. 매칭할 때 이 정보를 만든다.
             List<String> userIds = redisService.getUserIds(chatRoomId);
-
-            if (!userIds.isEmpty()) {
+            // userId가 해당 서버에서 접속한 유저라면 웹소켓 세션을 통해 메세지를 발송한다.
+            if (userIds != null) {
                 for (String userId : userIds) {
                     WebSocketSession session = sessionManager.getSession(userId);
                     if (session != null && session.isOpen()) {

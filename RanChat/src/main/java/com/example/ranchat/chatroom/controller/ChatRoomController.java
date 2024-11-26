@@ -16,7 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatRoomController {
     private final ChatRoomService chatRoomService;
     @PostMapping("ranchat")
-    public void ranchat(@RequestParam String userId) {
-        chatRoomService.ranChat(userId);
+    public ResponseEntity<String> ranchat(@RequestParam String userId) {
+        String response = chatRoomService.ranChat(userId);
+        return ResponseEntity.ok(response);
     }
 }

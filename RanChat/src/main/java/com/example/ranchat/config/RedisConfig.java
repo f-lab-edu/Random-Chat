@@ -28,4 +28,5 @@ public class RedisConfig {
 
         return container;
     }
+
 }

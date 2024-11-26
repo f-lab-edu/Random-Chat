@@ -31,6 +31,9 @@ public enum ResponseCode {
     NOT_ADMIN_USER(4032, "Not an admin user", HttpStatus.FORBIDDEN),
     NOT_FOUND_USER(4033, "User not found", HttpStatus.FORBIDDEN),
 
+    // HTTP_CODE 404
+    NOT_WAITING_USER(4041, "No User For RanChat", HttpStatus.NOT_FOUND),
+
     // HTTP_CODE 409
     DUPLICATED_USERNAME(4091, "이미 존재하는 username 입니다.", HttpStatus.CONFLICT),
 
