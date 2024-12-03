@@ -3,6 +3,8 @@ package com.example.ranchat.websocket;
 import com.example.ranchat.chatroom.UserSessionInfo;
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.RedisPublisher;
+import com.example.ranchat.redis.Service.RedisChatRoomService;
+import com.example.ranchat.redis.Service.RedisMatchStatusService;
 import com.example.ranchat.redis.Service.RedisService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -27,6 +29,8 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     private final RedisPublisher redisPublisher;
     private final SessionManager sessionManager;
     private final ObjectMapper objectMapper;
+    private final RedisChatRoomService redisChatRoomService;
+    private final RedisMatchStatusService redisMatchStatusService;
 
 
     // 사용자 ID와 세션의 매핑을 관리하는 맵
@@ -48,6 +52,8 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
 
         redisService.saveUserSessionInfo(sessionInfo);
+        // boolean 값 처리를 위해 분리
+        redisMatchStatusService.initMatchingStatus(userId);
 
         // 로컬 맵에 세션 저장
         sessionManager.addSession(userId, session);
@@ -93,7 +99,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
             }
             String exitMessage = makeExitMessage(userId);
 
-            List<String> userIds = redisService.getUserIds(chatRoomId);
+            List<String> userIds = redisChatRoomService.getUserIds(chatRoomId);
             // A랑B가 채팅 중 -> A 웹소켓 종료 -> 레디스 비움 -> B는 종료할 때 userIds == null
             if(userIds != null) {
                 for (String id : userIds) {
@@ -110,7 +116,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
             // 로컬 맵에서 세션 삭제
             sessionManager.removeSession(userId);
 
-            redisService.deleteChatRoomInfo(chatRoomId);
+            redisChatRoomService.deleteChatRoomInfo(chatRoomId);
 
 
             log.info("User disconnected: {}", userId);

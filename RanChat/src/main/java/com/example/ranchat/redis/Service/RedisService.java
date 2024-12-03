@@ -3,6 +3,7 @@ package com.example.ranchat.redis.Service;
 import com.example.ranchat.chatroom.UserSessionInfo;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -12,6 +13,7 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class RedisService {
+    @Qualifier("customStringRedisTemplate")
     private final RedisTemplate<String, String> redisTemplate;
 
     // 대기방에 들어갈 정보를 저장하는 로직
@@ -19,7 +21,6 @@ public class RedisService {
         String key = "userSession:" + info.getUserId();
         redisTemplate.opsForHash().put(key,"userId", info.getUserId());
         redisTemplate.opsForHash().put(key,"webSocketSessionId", info.getWebSocketSessionId());
-        redisTemplate.opsForHash().put(key,"isMatched", "false");
     }
 
     public void setMatchStatusTrue(String userId) {
@@ -67,26 +68,4 @@ public class RedisService {
     public void pushUserToWaitingRoom(String queueName, String userId) {
         redisTemplate.opsForList().leftPush(queueName, userId);
     }
-
-
-    public void saveChatRoomInfo(String chatRoomId, String userId1, String userId2) {
-        redisTemplate.opsForHash().put(chatRoomId, "userId1", userId1);
-        redisTemplate.opsForHash().put(chatRoomId, "userId2", userId2);
-    }
-
-    public void deleteChatRoomInfo(String chatRoomId) {
-        redisTemplate.delete(chatRoomId);
-    }
-
-    public List<String> getUserIds(String chatRoomId) {
-        String userId1 = (String)redisTemplate.opsForHash().get(chatRoomId, "userId1");
-        String userId2 = (String)redisTemplate.opsForHash().get(chatRoomId, "userId2");
-        if (userId1 != null && userId2 != null) {
-            return List.of(userId1, userId2);
-        }
-        return null;
-    }
-
-
-
 }

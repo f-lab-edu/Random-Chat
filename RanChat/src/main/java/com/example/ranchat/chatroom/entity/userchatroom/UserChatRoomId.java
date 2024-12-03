@@ -1,6 +1,7 @@
 package com.example.ranchat.chatroom.entity.userchatroom;
 
 import jakarta.persistence.Embeddable;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -8,14 +9,10 @@ import java.util.Objects;
 
 @Embeddable
 @NoArgsConstructor
+@AllArgsConstructor
 public class UserChatRoomId implements Serializable {
     private Long userKey;
     private Long chatRoomKey;
-
-    public UserChatRoomId(Long userKey, Long chatRoomKey) {
-        this.userKey = userKey;
-        this.chatRoomKey = chatRoomKey;
-    }
 
     @Override
     public boolean equals(Object object) {

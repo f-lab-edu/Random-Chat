@@ -1,5 +1,6 @@
 package com.example.ranchat.chatroom.controller;
 
+import com.example.ranchat.chatroom.dto.MatchingResponseDTO;
 import com.example.ranchat.chatroom.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,8 +17,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChatRoomController {
     private final ChatRoomService chatRoomService;
     @PostMapping("ranchat")
-    public ResponseEntity<String> ranchat(@RequestParam String userId) {
-        String response = chatRoomService.ranChat(userId);
+    public ResponseEntity<MatchingResponseDTO> ranChat(@RequestParam String userId) {
+        MatchingResponseDTO response = chatRoomService.ranChat(userId);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,11 +1,13 @@
 package com.example.ranchat.redis;
 
 import com.example.ranchat.message.entity.MessageDTO;
+import com.example.ranchat.redis.Service.RedisChatRoomService;
 import com.example.ranchat.redis.Service.RedisService;
 import com.example.ranchat.websocket.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Service;
@@ -19,7 +21,8 @@ import java.util.List;
 @RequiredArgsConstructor
 @Slf4j
 public class RedisSubscriber implements MessageListener {
-    private final RedisService redisService;
+
+    private final RedisChatRoomService redisChatRoomService;
     private final ObjectMapper objectMapper;
     private final SessionManager sessionManager;
     @Override
@@ -33,7 +36,7 @@ public class RedisSubscriber implements MessageListener {
             MessageDTO messageDTO = objectMapper.readValue(body, MessageDTO.class);
             String chatRoomId = messageDTO.getChatRoomId();
             // 레디스에서 채팅방 세션에 있는 유저들을 가져온다. 매칭할 때 이 정보를 만든다.
-            List<String> userIds = redisService.getUserIds(chatRoomId);
+            List<String> userIds = redisChatRoomService.getUserIds(chatRoomId);
             // userId가 해당 서버에서 접속한 유저라면 웹소켓 세션을 통해 메세지를 발송한다.
             if (userIds != null) {
                 for (String userId : userIds) {
