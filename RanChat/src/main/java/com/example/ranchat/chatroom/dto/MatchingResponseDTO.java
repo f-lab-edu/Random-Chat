@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 public class MatchingResponseDTO {
-    private String status;
     private String message;
 }
 

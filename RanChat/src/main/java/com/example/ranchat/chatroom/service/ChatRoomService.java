@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Recover;
 import org.springframework.retry.annotation.Retryable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,12 +35,16 @@ public class ChatRoomService {
     private static final String WAITING_QUEUE = "waitingRoom";
 
 
+
+    public MatchingResponseDTO ranChat(String userId) {
+        return new MatchingResponseDTO(userId + " is matcheing");
+    }
+    @Async
     @Retryable(
             retryFor = NoMatchingUserException.class,
             maxAttempts = 15,
             backoff = @Backoff(delay = 1000))
-    public MatchingResponseDTO ranChat(String userId) {
-
+    public void match(String userId) {
         // 현재 사용자 정보 가져오기, 웹소켓 세션Id를 통해 메세지 전송
         UserSessionInfo currentUserInfo = redisService.getUserSessionInfo(userId);
 
@@ -51,9 +56,8 @@ public class ChatRoomService {
             // 이미 매칭이 됐으면 꺼낸 유저 다시 대기 큐에 넣기, 이때 빨리 뽑힐 수 있는 방향으로 넣기
             if(otherUserId != null)
                 redisService.pushUserToWaitingRoom(WAITING_QUEUE,otherUserId);
+            return;
 
-            // 매칭이 된 상태니까 재시도 로직을 실행할 필요가 없어
-            return new MatchingResponseDTO("matching...",userId + " is matched");
         }
 
         // 뽑힌 유저가 내가 아니고 null도 아니면 내 매칭 상대다 -> 매칭 시도
@@ -84,7 +88,6 @@ public class ChatRoomService {
                 sendMatchNotification(currentUserInfo, chatRoomId, currentUserInfo.getWebSocketSessionId());
                 sendMatchNotification(otherUserInfo, chatRoomId, otherUserInfo.getWebSocketSessionId());
 
-                return new MatchingResponseDTO("matching...", userId + " is matched");
             } else {
                 log.warn("User session info not found for user {}", otherUserId);
                 throw new NoMatchingUserException(ResponseCode.NO_WAITING_USER);
@@ -98,7 +101,6 @@ public class ChatRoomService {
             // 적절한 예외 처리, 커스텀 예외 만들어야 할까? 일단 땜빵
             throw new NoMatchingUserException(ResponseCode.NO_WAITING_USER);
         }
-
     }
 
     private void makeMatchState(String userId, String otherUserId) {
