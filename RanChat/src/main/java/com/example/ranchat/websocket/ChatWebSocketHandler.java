@@ -3,6 +3,7 @@ package com.example.ranchat.websocket;
 import com.example.ranchat.chatroom.UserSessionInfo;
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.RedisPublisher;
+import com.example.ranchat.redis.RedisSubscriber;
 import com.example.ranchat.redis.Service.RedisChatRoomService;
 import com.example.ranchat.redis.Service.RedisMatchStatusService;
 import com.example.ranchat.redis.Service.RedisService;
@@ -11,7 +12,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.*;
 
@@ -31,6 +31,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
     private final ObjectMapper objectMapper;
     private final RedisChatRoomService redisChatRoomService;
     private final RedisMatchStatusService redisMatchStatusService;
+    private final RedisSubscriber redisSubscriber;
 
 
     // 사용자 ID와 세션의 매핑을 관리하는 맵
@@ -46,10 +47,10 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         log.info("userId: " + userId);
 
         // 세션 정보를 Redis에 저장
-        UserSessionInfo sessionInfo = new UserSessionInfo();
-        sessionInfo.setUserId(userId);
-        sessionInfo.setWebSocketSessionId(sessionId);
-
+        UserSessionInfo sessionInfo = UserSessionInfo.builder()
+                .userId(userId)
+                .webSocketSessionId(sessionId)
+                .build();
 
         redisService.saveUserSessionInfo(sessionInfo);
         // boolean 값 처리를 위해 분리
@@ -65,10 +66,17 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         // 메시지 처리 로직 구현
         String payload = (String) message.getPayload();
         String chatRoomId = getChatRoomIdFromMessage(payload);
+        MessageDTO messageDTO;
+        try {
+            messageDTO = objectMapper.readValue(payload, MessageDTO.class);
+        } catch (JsonProcessingException e) {
+            log.warn("Failed to parse message payload: {}", payload, e);
+            return;
+        }
 
         // 채팅 메시지를 Redis에 발행
         if (chatRoomId != null) {
-            redisPublisher.publish("chatRoom:" + chatRoomId, payload);
+            redisPublisher.publish("chatRoom:" + chatRoomId, messageDTO);
         } else {
             log.warn("Invalid message format: {}", payload);
         }
@@ -118,6 +126,8 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
             redisChatRoomService.deleteChatRoomInfo(chatRoomId);
 
+            // 락 제거
+            redisSubscriber.removeLock(session.getId());
 
             log.info("User disconnected: {}", userId);
         }

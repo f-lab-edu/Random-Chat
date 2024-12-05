@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -23,16 +22,6 @@ public class RedisService {
         redisTemplate.opsForHash().put(key,"webSocketSessionId", info.getWebSocketSessionId());
     }
 
-    public void setMatchStatusTrue(String userId) {
-        String key = "userSession:" + userId;
-        redisTemplate.opsForHash().put(key, "isMatched", "true");
-    }
-
-    // 매칭 여부를 확인하기 위한 필드 조회
-    public String isMatched(String userId) {
-        String key = "userSession:" + userId;
-        return (String) redisTemplate.opsForHash().get(key, "isMatched");
-    }
 
     public void deleteUserSessionInfo(String userId) {
         String key = "userSession:" + userId;
@@ -45,9 +34,10 @@ public class RedisService {
         String webSocketSessionId = (String) redisTemplate.opsForHash().get(key, "webSocketSessionId");
 
         if (webSocketSessionId != null) {
-            UserSessionInfo info = new UserSessionInfo();
-            info.setUserId(userId);
-            info.setWebSocketSessionId(webSocketSessionId);
+            UserSessionInfo info = UserSessionInfo.builder()
+                    .userId(userId)
+                    .webSocketSessionId(webSocketSessionId)
+                    .build();
             return info;
         }
         return null;

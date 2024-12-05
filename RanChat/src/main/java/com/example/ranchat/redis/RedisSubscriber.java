@@ -10,31 +10,30 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class RedisSubscriber implements MessageListener {
+public class RedisSubscriber {
 
     private final RedisChatRoomService redisChatRoomService;
     private final ObjectMapper objectMapper;
     private final SessionManager sessionManager;
-    @Override
-    public void onMessage(Message message, byte[] pattern) {
-        String channel = new String(message.getChannel());
-        String body = new String(message.getBody());
+    private final ConcurrentHashMap<String, ReentrantLock> sessionLocks = new ConcurrentHashMap<>();
 
-        log.info("body가 어떤 형태이지?: " + body);
+    public void handleMessage(MessageDTO message) {
 
         try {
-            MessageDTO messageDTO = objectMapper.readValue(body, MessageDTO.class);
-            String chatRoomId = messageDTO.getChatRoomId();
+            String chatRoomId = message.getChatRoomId();
             // 레디스에서 채팅방 세션에 있는 유저들을 가져온다. 매칭할 때 이 정보를 만든다.
             List<String> userIds = redisChatRoomService.getUserIds(chatRoomId);
             // userId가 해당 서버에서 접속한 유저라면 웹소켓 세션을 통해 메세지를 발송한다.
@@ -42,8 +41,14 @@ public class RedisSubscriber implements MessageListener {
                 for (String userId : userIds) {
                     WebSocketSession session = sessionManager.getSession(userId);
                     if (session != null && session.isOpen()) {
-                        synchronized (session) {
-                            session.sendMessage(new TextMessage(body));
+                        String sessionId = session.getId();
+                        ReentrantLock lock = sessionLocks.computeIfAbsent(sessionId, id -> new ReentrantLock());
+
+                        lock.lock();
+                        try{
+                            session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
+                        }finally {
+                            lock.unlock();
                         }
                         session.getAttributes().put("chatRoomId", chatRoomId);
                         log.info("웹소켓에 메시지 전송");
@@ -54,15 +59,12 @@ public class RedisSubscriber implements MessageListener {
             }
 
         } catch (Exception e) {
-            log.error(e.getMessage() + ": onMessage에서 에러");
+            throw new RuntimeException(e);
         }
-
-
-
     }
 
-    private String extractRecipientFromMessage(String message) {
-        // 메시지를 파싱하여 수신자 ID를 추출하는 로직을 구현합니다.
-        return null;//parsedRecipientUserId;
+    public void removeLock(String sessionId) {
+        sessionLocks.remove(sessionId);
     }
+
 }

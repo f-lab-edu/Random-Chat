@@ -15,21 +15,35 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
+import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    @Bean
+    public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber, ObjectMapper objectMapper) {
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        Jackson2JsonRedisSerializer<MessageDTO> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, MessageDTO.class);
+
+        MessageListenerAdapter adapter = new MessageListenerAdapter(redisSubscriber, "handleMessage");
+        adapter.setSerializer(serializer);
+        adapter.afterPropertiesSet();
+
+        return adapter;
+    }
 
     @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory, RedisSubscriber redisSubscriber) {
+    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
 
         // 채널 패턴을 지정하여 구독
-        container.addMessageListener(redisSubscriber, new PatternTopic("chatRoom:*"));
+        container.addMessageListener(listenerAdapter, new PatternTopic("chatRoom:*"));
+
         return container;
     }
 
@@ -82,7 +96,7 @@ public class RedisConfig {
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-        GenericJackson2JsonRedisSerializer redisSerializer = new GenericJackson2JsonRedisSerializer();
+        GenericJackson2JsonRedisSerializer redisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         template.setValueSerializer(redisSerializer);
         return template;

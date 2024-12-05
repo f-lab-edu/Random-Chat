@@ -37,7 +37,7 @@ public class ChatRoomService {
 
 
     public MatchingResponseDTO ranChat(String userId) {
-        return new MatchingResponseDTO(userId + " is matcheing");
+        return new MatchingResponseDTO(userId + " is matching");
     }
     @Async
     @Retryable(
@@ -126,14 +126,9 @@ public class ChatRoomService {
                 .sender(userId)
                 .timestamp(LocalDateTime.now())
                 .build();
-        try {
-            String message = objectMapper.writeValueAsString(messageDTO);
-            // 레디스에 보내면 다른 서버까지 메세지가 전송됨.
-            redisPublisher.publish("chatRoom:" + chatRoomId, message);
 
-        } catch (JsonProcessingException e) {
-            log.error("Failed to serialize MatchNotification", e);
-        }
+        // 레디스에 보내면 다른 서버까지 메세지가 전송됨.
+        redisPublisher.publish("chatRoom:" + chatRoomId, messageDTO);
     }
 
 }
