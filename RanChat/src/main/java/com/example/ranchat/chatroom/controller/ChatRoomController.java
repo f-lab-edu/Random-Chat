@@ -19,7 +19,6 @@ public class ChatRoomController {
     @PostMapping("/ranchat")
     public ResponseEntity<MatchingResponseDTO> ranChat(@RequestParam String userId) {
         MatchingResponseDTO response = chatRoomService.ranChat(userId);
-        chatRoomService.match(userId);
         return ResponseEntity.ok(response);
     }
 }

@@ -5,10 +5,8 @@ import com.example.ranchat.redis.RedisSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Primary;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -82,6 +80,7 @@ public class RedisConfig {
         template.setHashValueSerializer(booleanSerializer);
 
 
+
         return template;
     }
 
@@ -99,6 +98,7 @@ public class RedisConfig {
         GenericJackson2JsonRedisSerializer redisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
         template.setValueSerializer(redisSerializer);
+
         return template;
     }
 

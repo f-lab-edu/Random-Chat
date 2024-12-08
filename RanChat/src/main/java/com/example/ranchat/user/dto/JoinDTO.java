@@ -1,8 +1,7 @@
 package com.example.ranchat.user.dto;
 
-import com.example.ranchat.message.entity.MessageDTO;
+
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

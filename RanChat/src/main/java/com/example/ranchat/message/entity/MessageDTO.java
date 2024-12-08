@@ -9,9 +9,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Builder
 public class MessageDTO {
+    private MessageType type;
     private String chatRoomId;
     private String content;
     private String webSocketSessionId;
     private String sender;
     private LocalDateTime timestamp;
+
+    public void setNormal() {
+        type = MessageType.NORMAL;
+    }
 }

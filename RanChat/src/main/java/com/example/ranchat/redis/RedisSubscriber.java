@@ -2,15 +2,10 @@ package com.example.ranchat.redis;
 
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.Service.RedisChatRoomService;
-import com.example.ranchat.redis.Service.RedisService;
 import com.example.ranchat.websocket.SessionManager;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Service;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;

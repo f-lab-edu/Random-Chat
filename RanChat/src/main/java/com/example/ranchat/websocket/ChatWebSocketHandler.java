@@ -2,6 +2,7 @@ package com.example.ranchat.websocket;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
 import com.example.ranchat.message.entity.MessageDTO;
+import com.example.ranchat.message.entity.MessageType;
 import com.example.ranchat.redis.RedisPublisher;
 import com.example.ranchat.redis.RedisSubscriber;
 import com.example.ranchat.redis.Service.RedisChatRoomService;
@@ -69,6 +70,8 @@ public class ChatWebSocketHandler implements WebSocketHandler {
         MessageDTO messageDTO;
         try {
             messageDTO = objectMapper.readValue(payload, MessageDTO.class);
+            messageDTO.setNormal();
+            log.info("messageDTO" + messageDTO);
         } catch (JsonProcessingException e) {
             log.warn("Failed to parse message payload: {}", payload, e);
             return;
@@ -137,6 +140,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
     private String makeExitMessage(String userId) {
         MessageDTO exitMessage = MessageDTO.builder()
+                .type(MessageType.EXIT)
                 .content(userId + "님이 퇴장합니다")
                 .timestamp(LocalDateTime.now())
                 .build();
