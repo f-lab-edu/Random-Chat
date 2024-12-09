@@ -67,7 +67,7 @@ public class RedisService {
                 .build();
 
         // 레디스에 보내면 다른 서버까지 메세지가 전송됨.
-        redisPublisher.publish("chatRoom:" + chatRoomId, messageDTO);
+        redisPublisher.publish(chatRoomId, messageDTO);
     }
 
 

@@ -1,4 +1,4 @@
-package com.example.ranchat.config;
+package com.example.ranchat.config.redis;
 
 import org.redisson.Redisson;
 import org.redisson.api.RedissonClient;

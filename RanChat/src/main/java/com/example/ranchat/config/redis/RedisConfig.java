@@ -1,10 +1,11 @@
-package com.example.ranchat.config;
+package com.example.ranchat.config.redis;
 
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.redis.RedisSubscriber;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -20,6 +21,10 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+    @Value("${spring.data.redis.host}")
+    private String redisHost;
+    @Value("${spring.data.redis.port}")
+    private int redisPort;
     @Bean
     public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber, ObjectMapper objectMapper) {
         objectMapper.registerModule(new JavaTimeModule());
@@ -47,7 +52,7 @@ public class RedisConfig {
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory();
+        return new LettuceConnectionFactory(redisHost, redisPort);
     }
 
     @Bean(name = "customStringRedisTemplate")

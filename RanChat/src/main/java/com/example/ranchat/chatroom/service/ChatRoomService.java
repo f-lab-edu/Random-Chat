@@ -18,11 +18,11 @@ public class ChatRoomService {
     private final RedisService redisService;
     private final RedissonClient redissonClient;
 
-    private static final String WAITING_QUEUE = "waitingRoom";
+    public static final String WAITING_QUEUE = "waitingRoom";
     private static final String LOCK = "matchingLock";
 
     public MatchingResponseDTO ranChat(String userId) {
-        redisService.pushUserToWaitingRoom(WAITING_QUEUE, userId);
+        redisService.addUserToWaitingRoom(WAITING_QUEUE, userId);
         return new MatchingResponseDTO(userId + " is matching");
     }
     @Scheduled(fixedDelay = 3000)
@@ -39,6 +39,7 @@ public class ChatRoomService {
 
             String userAId,userBId;
             // 대기 유저가 충분히 있으면 for문 순회하면서 매칭시켜줌.
+            log.info("test size: " + size);
             if (size >= 2) {
                 for (int i = 0; i < size / 2; i++) {
                     userAId = redisService.getUserFromWaitingRoom(WAITING_QUEUE);

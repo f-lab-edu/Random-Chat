@@ -13,8 +13,8 @@ import org.springframework.stereotype.Service;
 public class RedisPublisher {
 
     private final RedisTemplate<String, MessageDTO> redisTemplate;
-
-    public void publish(String channel, MessageDTO message) {
+    public void publish(String chatRoomId, MessageDTO message) {
+        String channel = "chatRoom:" + chatRoomId;
         redisTemplate.convertAndSend(channel, message);
     }
     

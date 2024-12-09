@@ -79,7 +79,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 
         // 채팅 메시지를 Redis에 발행
         if (chatRoomId != null) {
-            redisPublisher.publish("chatRoom:" + chatRoomId, messageDTO);
+            redisPublisher.publish(chatRoomId, messageDTO);
         } else {
             log.warn("Invalid message format: {}", payload);
         }
