@@ -31,11 +31,17 @@ public enum ResponseCode {
     NOT_ADMIN_USER(4032, "Not an admin user", HttpStatus.FORBIDDEN),
     NOT_FOUND_USER(4033, "User not found", HttpStatus.FORBIDDEN),
 
+    // HTTP_CODE 404
+    NOT_WAITING_USER(4041, "No User For RanChat", HttpStatus.NOT_FOUND),
+
     // HTTP_CODE 409
     DUPLICATED_USERNAME(4091, "이미 존재하는 username 입니다.", HttpStatus.CONFLICT),
 
+
     // HTTP_CODE 500
-    UN_KNOWN_ERROR(5000, "정의된 예외가 아닙니다.", HttpStatus.INTERNAL_SERVER_ERROR);
+    UN_KNOWN_ERROR(5000, "정의된 예외가 아닙니다.", HttpStatus.INTERNAL_SERVER_ERROR),
+
+    NO_WAITING_USER(6000, "웹소켓 예외: 대기방에 유저가 없습니다.", HttpStatus.NOT_FOUND);
 
 
     private final int code;
