@@ -2,7 +2,7 @@ package com.example.ranchat.user.entity;
 
 import com.example.ranchat.BaseEntity;
 import com.example.ranchat.message.entity.Message;
-import com.example.ranchat.chatroom.entity.userchatroom.UserChatRoom;
+import com.example.ranchat.userchatroom.entity.UserChatRoom;
 import jakarta.persistence.*;
 import lombok.*;
 
