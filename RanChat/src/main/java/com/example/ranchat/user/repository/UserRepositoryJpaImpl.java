@@ -1,5 +1,7 @@
 package com.example.ranchat.user.repository;
 
+import java.util.Optional;
+
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -20,7 +22,7 @@ public class UserRepositoryJpaImpl implements UserRepository {
 	}
 
 	@Override
-	public User findByUsername(String username) {
+	public Optional<User> findByUsername(String username) {
 		return userJpaRepository.findByUsername(username);
 	}
 
@@ -31,7 +33,7 @@ public class UserRepositoryJpaImpl implements UserRepository {
 	}
 
 	@Override
-	public User findById(Long userId) {
-		return userJpaRepository.findById(userId).get();
+	public Optional<User> findById(Long userId) {
+		return userJpaRepository.findById(userId);
 	}
 }

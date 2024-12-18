@@ -1,10 +1,5 @@
 package com.example.ranchat.config.redis;
 
-import com.example.ranchat.message.entity.MessageDTO;
-import com.example.ranchat.redis.RedisSubscriber;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,98 +10,103 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.listener.adapter.MessageListenerAdapter;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import com.example.ranchat.message.entity.MessageDTO;
+import com.example.ranchat.redis.RedisSubscriber;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+
 @Configuration
 public class RedisConfig {
-    @Value("${spring.data.redis.host}")
-    private String redisHost;
-    @Value("${spring.data.redis.port}")
-    private int redisPort;
-    @Bean
-    public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber, ObjectMapper objectMapper) {
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-        Jackson2JsonRedisSerializer<MessageDTO> serializer = new Jackson2JsonRedisSerializer<>(objectMapper, MessageDTO.class);
+	@Value("${spring.data.redis.host}")
+	private String redisHost;
+	@Value("${spring.data.redis.port}")
+	private int redisPort;
 
-        MessageListenerAdapter adapter = new MessageListenerAdapter(redisSubscriber, "handleMessage");
-        adapter.setSerializer(serializer);
-        adapter.afterPropertiesSet();
+	@Bean
+	public MessageListenerAdapter messageListenerAdapter(RedisSubscriber redisSubscriber, ObjectMapper objectMapper) {
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		Jackson2JsonRedisSerializer<MessageDTO> serializer = new Jackson2JsonRedisSerializer<>(objectMapper,
+			MessageDTO.class);
 
-        return adapter;
-    }
+		MessageListenerAdapter adapter = new MessageListenerAdapter(redisSubscriber, "handleMessage");
+		adapter.setSerializer(serializer);
+		adapter.afterPropertiesSet();
 
-    @Bean
-    public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory, MessageListenerAdapter listenerAdapter) {
+		return adapter;
+	}
 
-        RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-        container.setConnectionFactory(connectionFactory);
+	@Bean
+	public RedisMessageListenerContainer redisContainer(RedisConnectionFactory connectionFactory,
+		MessageListenerAdapter listenerAdapter) {
 
-        // 채널 패턴을 지정하여 구독
-        container.addMessageListener(listenerAdapter, new PatternTopic("chatRoom:*"));
+		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
+		container.setConnectionFactory(connectionFactory);
 
-        return container;
-    }
+		// 채널 패턴을 지정하여 구독
+		container.addMessageListener(listenerAdapter, new PatternTopic("chatRoom:*"));
 
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(redisHost, redisPort);
-    }
+		return container;
+	}
 
-    @Bean(name = "customStringRedisTemplate")
-    @Primary
-    public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, String> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+	@Bean
+	public RedisConnectionFactory redisConnectionFactory() {
+		return new LettuceConnectionFactory(redisHost, redisPort);
+	}
 
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
+	@Bean(name = "customStringRedisTemplate")
+	@Primary
+	public RedisTemplate<String, String> stringRedisTemplate(RedisConnectionFactory connectionFactory) {
+		RedisTemplate<String, String> template = new RedisTemplate<>();
+		template.setConnectionFactory(connectionFactory);
 
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
+		template.setKeySerializer(new StringRedisSerializer());
+		template.setValueSerializer(new StringRedisSerializer());
 
-        return template;
-    }
+		template.setHashKeySerializer(new StringRedisSerializer());
+		template.setHashValueSerializer(new StringRedisSerializer());
 
-    @Bean(name = "customBooleanRedisTemplate")
-    public RedisTemplate<String, Boolean> booleanRedisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, Boolean> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
+		return template;
+	}
 
-        StringRedisSerializer stringSerializer = new StringRedisSerializer();
-        template.setKeySerializer(stringSerializer);
-        template.setHashKeySerializer(stringSerializer);
+	@Bean(name = "customBooleanRedisTemplate")
+	public RedisTemplate<String, Boolean> booleanRedisTemplate(RedisConnectionFactory connectionFactory) {
+		RedisTemplate<String, Boolean> template = new RedisTemplate<>();
+		template.setConnectionFactory(connectionFactory);
 
-        Jackson2JsonRedisSerializer<Boolean> booleanSerializer = new Jackson2JsonRedisSerializer<>(Boolean.class);
+		StringRedisSerializer stringSerializer = new StringRedisSerializer();
+		template.setKeySerializer(stringSerializer);
+		template.setHashKeySerializer(stringSerializer);
 
-        template.setValueSerializer(booleanSerializer);
-        template.setHashValueSerializer(booleanSerializer);
+		Jackson2JsonRedisSerializer<Boolean> booleanSerializer = new Jackson2JsonRedisSerializer<>(Boolean.class);
 
+		template.setValueSerializer(booleanSerializer);
+		template.setHashValueSerializer(booleanSerializer);
 
+		return template;
+	}
 
-        return template;
-    }
+	@Bean(name = "customMessageRedisTemplate")
+	public RedisTemplate<String, MessageDTO> messageRedisTemplate(RedisConnectionFactory connectionFactory) {
+		RedisTemplate<String, MessageDTO> template = new RedisTemplate<>();
+		template.setConnectionFactory(connectionFactory);
+		template.setKeySerializer(new StringRedisSerializer());
 
-    @Bean(name = "customMessageRedisTemplate")
-    public RedisTemplate<String, MessageDTO> messageRedisTemplate(RedisConnectionFactory connectionFactory) {
-        RedisTemplate<String, MessageDTO> template = new RedisTemplate<>();
-        template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
+		ObjectMapper objectMapper = new ObjectMapper();
+		objectMapper.registerModule(new JavaTimeModule());
+		objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
+		Jackson2JsonRedisSerializer<MessageDTO> redisSerializer = new Jackson2JsonRedisSerializer<>(objectMapper,
+			MessageDTO.class);
 
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+		template.setValueSerializer(redisSerializer);
+		template.setHashValueSerializer(redisSerializer);
 
-        GenericJackson2JsonRedisSerializer redisSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
-
-        template.setValueSerializer(redisSerializer);
-
-        return template;
-    }
-
-
+		return template;
+	}
 
 }

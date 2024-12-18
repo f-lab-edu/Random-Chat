@@ -9,9 +9,11 @@ import org.springframework.stereotype.Service;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
 import com.example.ranchat.chatroom.entity.ChatRoom;
+import com.example.ranchat.exception.NotFoundUserException;
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.message.entity.MessageType;
 import com.example.ranchat.redis.RedisPublisher;
+import com.example.ranchat.response.ResponseCode;
 import com.example.ranchat.user.entity.User;
 import com.example.ranchat.user.service.UserService;
 import com.example.ranchat.userchatroom.service.UserChatRoomService;
@@ -40,8 +42,11 @@ public class RedisService {
 		String chatRoomId = chatRoom.getChatRoomId().toString();
 		log.info("chatRoomId: " + chatRoomId);
 		// UserChatRoom 엔티티 생성
-		User firstUser = userService.findById(Long.parseLong(firstUserId));
-		User secondUser = userService.findById(Long.parseLong(secondUserId));
+		User firstUser = userService.findById(Long.parseLong(firstUserId))
+			.orElseThrow(() -> new NotFoundUserException(ResponseCode.NOT_FOUND_USER));
+		User secondUser = userService.findById(Long.parseLong(secondUserId))
+			.orElseThrow(() -> new NotFoundUserException(ResponseCode.NOT_FOUND_USER));
+
 		userChatRoomService.createUserChatRoom(chatRoom, firstUser);
 		userChatRoomService.createUserChatRoom(chatRoom, secondUser);
 
@@ -69,7 +74,7 @@ public class RedisService {
 			.chatRoomId(chatRoomId)
 			.content(userId + "님이 입장했습니다.")
 			.webSocketSessionId(userInfo.getWebSocketSessionId())
-			.sender(userId)
+			.sender(Long.valueOf(userId))
 			.timestamp(LocalDateTime.now())
 			.build();
 

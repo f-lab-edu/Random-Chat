@@ -1,13 +1,15 @@
 package com.example.ranchat.user.repository;
 
+import java.util.Optional;
+
 import com.example.ranchat.user.entity.User;
 
 public interface UserRepository {
 	Boolean existsByUsername(String username);
 
-	User findByUsername(String username);
+	Optional<User> findByUsername(String username);
 
 	User save(User user);
 
-	User findById(Long userId);
+	Optional<User> findById(Long userId);
 }

@@ -1,5 +1,7 @@
 package com.example.ranchat.chatroom.service;
 
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.redisson.api.RLock;
@@ -79,6 +81,10 @@ public class ChatRoomService {
 		ChatRoom chatRoom = ChatRoom.builder().build();
 		chatRoomRepository.save(chatRoom);
 		return chatRoom;
+	}
+
+	public Optional<ChatRoom> findById(UUID chatRoomId) {
+		return chatRoomRepository.findById(chatRoomId);
 	}
 
 }
