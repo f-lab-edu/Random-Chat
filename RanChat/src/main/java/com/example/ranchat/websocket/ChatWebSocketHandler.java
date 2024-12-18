@@ -43,10 +43,12 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 	private final MessageService messageService;
 	private final RedisTemplate<String, String> redisTemplate;
 
+	public static final int CACHE_SIZE = 100;
+
 	// 사용자 ID와 세션의 매핑을 관리하는 맵
 
 	@Override
-	public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+	public void afterConnectionEstablished(WebSocketSession session) {
 		// 사용자 ID를 세션에서 추출하거나 핸드셰이크 시 전달된 정보를 통해 가져옵니다.
 		String sessionId = session.getId();
 		String userId = getUserIdFromSession(session);
@@ -71,7 +73,7 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 	}
 
 	@Override
-	public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) throws Exception {
+	public void handleMessage(WebSocketSession session, WebSocketMessage<?> message) {
 		// 메시지 처리 로직 구현
 		String payload = (String)message.getPayload();
 		String chatRoomId = getChatRoomIdFromMessage(payload);
@@ -87,19 +89,24 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 			return;
 		}
 
+		if (chatRoomId == null) {
+			log.warn("Invalid message format: {}", payload);
+			return;
+		}
+
 		// 채팅 메시지를 Redis에 발행
-		if (chatRoomId != null) {
+		if (redisTemplate.hasKey(chatRoomId)) {
 			redisPublisher.publish(chatRoomId, messageDTO);
 
 			String key = "chatRepository:" + chatRoomId;
 			Long size = redisTemplate.opsForList().size(key);
 			log.info("messageList size: " + size);
-			if (size % 5 == 0) {
+			if (size == CACHE_SIZE) {
 				messageService.saveCachedMessages(chatRoomId);
 			}
 
 		} else {
-			log.warn("Invalid message format: {}", payload);
+			log.info("상대방이 퇴장했습니다. {} ", payload);
 		}
 	}
 
@@ -140,7 +147,13 @@ public class ChatWebSocketHandler implements WebSocketHandler {
 					friendSession.sendMessage(new TextMessage(exitMessage));
 				}
 			}
+			// 메세지 DB에 저장
+			messageService.saveCachedMessages(chatRoomId);
 
+			// 레디스 메세지 캐시 삭제
+			if (messageService.checkMessageCacheExist(chatRoomId)) {
+				messageService.deleteMessageCache(chatRoomId);
+			}
 			redisService.deleteUserSessionInfo(userId);
 			// 로컬 맵에서 세션 삭제
 			sessionManager.removeSession(userId);
