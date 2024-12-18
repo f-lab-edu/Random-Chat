@@ -1,7 +1,6 @@
 package com.example.ranchat.redis.Service;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -9,9 +8,15 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import com.example.ranchat.chatroom.UserSessionInfo;
+import com.example.ranchat.chatroom.entity.ChatRoom;
+import com.example.ranchat.exception.NotFoundUserException;
 import com.example.ranchat.message.entity.MessageDTO;
 import com.example.ranchat.message.entity.MessageType;
 import com.example.ranchat.redis.RedisPublisher;
+import com.example.ranchat.response.ResponseCode;
+import com.example.ranchat.user.entity.User;
+import com.example.ranchat.user.service.UserService;
+import com.example.ranchat.userchatroom.service.UserChatRoomService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,23 +30,32 @@ public class RedisService {
 	private final RedisChatRoomService redisChatRoomService;
 	private final RedisMatchStatusService redisMatchStatusService;
 	private final RedisPublisher redisPublisher;
+	private final UserChatRoomService userChatRoomService;
+	private final UserService userService;
 
 	@Async
-	public void match(String userAId, String userBId) {
+	public void match(String firstUserId, String secondUserId, ChatRoom chatRoom) {
 		// 매칭된 사용자 정보 가져오기, 레디스에서 가져오니까 다른 서버에서 연결된 웹소켓 유저 정보도 가져옴
-		UserSessionInfo userAInfo = getUserSessionInfo(userAId);
-		UserSessionInfo userBInfo = getUserSessionInfo(userBId);
+		UserSessionInfo userAInfo = getUserSessionInfo(firstUserId);
+		UserSessionInfo userBInfo = getUserSessionInfo(secondUserId);
 
-		String chatRoomId = UUID.randomUUID().toString();
+		String chatRoomId = chatRoom.getChatRoomId().toString();
 		log.info("chatRoomId: " + chatRoomId);
+		// UserChatRoom 엔티티 생성
+		User firstUser = userService.findById(Long.parseLong(firstUserId))
+			.orElseThrow(() -> new NotFoundUserException(ResponseCode.NOT_FOUND_USER));
+		User secondUser = userService.findById(Long.parseLong(secondUserId))
+			.orElseThrow(() -> new NotFoundUserException(ResponseCode.NOT_FOUND_USER));
+
+		userChatRoomService.createUserChatRoom(chatRoom, firstUser);
+		userChatRoomService.createUserChatRoom(chatRoom, secondUser);
+
 		// 레디스에 저장, 다른 서버에서 레디스에 채팅방Id를 통해 접근해서 매칭된 유저를 다 조회하고, 해당 유저의 Id를 통해 세션에 메세지를 보낼 수 있다.
-		redisChatRoomService.saveChatRoomInfo(chatRoomId, userAId, userBId);
-		// 각종 채팅방 관련 엔티티 만들어주기 or JDBC로 만들기, 일단 패스
+		redisChatRoomService.saveChatRoomInfo(chatRoomId, firstUserId, secondUserId);
 		// 각 유저의 상태를 매칭 상태로 저장
+		makeMatchState(firstUserId, secondUserId);
 
-		makeMatchState(userAId, userBId);
-
-		/* 두 사용자에게 채팅방 입장 메시지 전송 */
+		// 두 사용자에게 채팅방 입장 메시지 전송
 		sendEnterMessage(userAInfo, chatRoomId);
 		sendEnterMessage(userBInfo, chatRoomId);
 	}
@@ -60,7 +74,7 @@ public class RedisService {
 			.chatRoomId(chatRoomId)
 			.content(userId + "님이 입장했습니다.")
 			.webSocketSessionId(userInfo.getWebSocketSessionId())
-			.sender(userId)
+			.sender(Long.valueOf(userId))
 			.timestamp(LocalDateTime.now())
 			.build();
 

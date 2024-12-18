@@ -1,11 +1,15 @@
 package com.example.ranchat.user.repository;
 
-import com.example.ranchat.user.entity.User;
-import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
+import com.example.ranchat.user.entity.User;
 
 public interface UserRepository {
-    Boolean existsByUsername(String username);
-    User findByUsername(String username);
-    User save(User user);
+	Boolean existsByUsername(String username);
+
+	Optional<User> findByUsername(String username);
+
+	User save(User user);
+
+	Optional<User> findById(Long userId);
 }

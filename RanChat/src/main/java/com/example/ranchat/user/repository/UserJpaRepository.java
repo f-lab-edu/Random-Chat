@@ -1,12 +1,14 @@
 package com.example.ranchat.user.repository;
 
-import com.example.ranchat.user.entity.User;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
+import java.util.Optional;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.example.ranchat.user.entity.User;
 
 public interface UserJpaRepository extends JpaRepository<User, Long> {
-    Boolean existsByUsername(String username);
-    User findByUsername(String username);
+	Boolean existsByUsername(String username);
+
+	Optional<User> findByUsername(String username);
 
 }
